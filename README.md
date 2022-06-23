@@ -11,6 +11,9 @@ Download the wheel that is added to any release, and then execute the following 
 pip install <location of wheel>
 ```
 
+Then start Jupyter Lab in that environment, or if it was already running, refresh the browser window.
+
+
 ## Development
 Setting up the development environment is largely based on the [Jupyterlab extension tutorial](https://jupyterlab.readthedocs.io/en/stable/extension/extension_tutorial.html), so follow that for the initial setup (until but not including "Create a repository").
 
