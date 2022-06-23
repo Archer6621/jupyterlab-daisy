@@ -3,3 +3,37 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
+
+.my-panel {
+    background: var(--jp-layout-color1);
+    padding: 8px;
+} 
+
+.my-list {
+    list-style: none;
+    padding-left: 0px;
+    background: var(--jp-layout-color2);
+}
+
+.my-highlighted-item {
+    font-family: var(--jp-code-font-family);
+    padding: 12px;
+    border-top: 1px solid var(--jp-shadow-ambient-color);
+    background: var(--jp-layout-color2);
+} 
+
+
+.my-list-item {
+    font-family: var(--jp-code-font-family);
+    padding: 12px;
+    border-top: 1px solid var(--jp-shadow-ambient-color);
+} 
+
+.my-list-item:hover {
+    background: var(--jp-editor-selected-background);
+} 
+
+.my-list-item:active {
+    background: var(--jp-editor-selected-background);
+    color: var(--jp-layout-color1);
+} 

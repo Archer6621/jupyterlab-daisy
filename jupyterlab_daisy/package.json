@@ -53,7 +53,17 @@
     "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
-    "@jupyterlab/application": "^3.1.0"
+    "@jupyterlab/application": "^3.4.3",
+    "@jupyterlab/apputils": "^3.4.3",
+    "@jupyterlab/codemirror": "^3.4.3",
+    "@jupyterlab/docregistry": "^3.4.3",
+    "@jupyterlab/notebook": "^3.4.3",
+    "@jupyterlab/terminal": "^3.4.3",
+    "@jupyterlab/ui-components": "^3.4.3",
+    "@lumino/disposable": "^1.10.1",
+    "@lumino/widgets": "^1.32.1",
+    "@types/codemirror": "^5.60.5",
+    "node-fetch": "^3.2.6"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.1.0",
@@ -80,7 +90,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "jupyterlab": { 
+  "jupyterlab": {
     "extension": true,
     "outputDir": "jupyterlab_daisy/labextension"
   },
