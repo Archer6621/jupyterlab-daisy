@@ -4,7 +4,7 @@ This Jupyterlab extension allows a user to obtain suggestions for related tables
 
 ## Installation instructions
 
-Download the tarball that is added to a release, and then execute the following command in your desired environment:
+Download the tarball that is added to any release, and then execute the following command in your desired environment:
 ```
 pip install <location of tarball>
 ```
