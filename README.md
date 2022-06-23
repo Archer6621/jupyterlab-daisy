@@ -2,6 +2,8 @@
 
 This Jupyterlab extension allows you to obtain suggestions for related tables by selecting some text representing a table name and then clicking the corresponding button on the UI. A sidebar will open with table name suggestions obtained from Daisy, which you can click to instantly replace the selected table name.
 
+Requires [Daisy](https://github.com/OpertusMundi/discovery-service) running in the background.
+
 ## Installation instructions
 
 Download the wheel that is added to any release, and then execute the following command in your desired conda/jupyter environment:
