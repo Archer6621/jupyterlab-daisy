@@ -32,10 +32,14 @@ class ButtonExtension
   closeAndReplace(
     ev: MouseEvent,
     editor: CodeMirrorEditor,
+    omitExtension: boolean,
     sidebar?: Panel
   ): void {
     sidebar?.close();
-    const chosen = (ev.target as Element).textContent ?? '';
+    let chosen = (ev.target as Element).textContent ?? '';
+    if (omitExtension) {
+      chosen = chosen.split('.')[0];
+    }
     editor.replaceSelection(`${chosen}`);
   }
 
@@ -57,8 +61,10 @@ class ButtonExtension
           );
 
           // If the selected value has no extension, we assume it to be 'csv'
+          let noExt = false;
           if (!value.includes('.')) {
             value += '.csv';
+            noExt = true;
           }
 
           if (value.length > 0) {
@@ -91,7 +97,7 @@ class ButtonExtension
                       bla.textContent = entry.table_name;
                       bla.className = 'my-list-item';
                       bla.onclick = ev =>
-                        this.closeAndReplace(ev, editor, this.sidebar);
+                        this.closeAndReplace(ev, editor, noExt, this.sidebar);
                       list.appendChild(bla);
                     });
                   });
