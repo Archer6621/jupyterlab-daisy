@@ -6,12 +6,10 @@ Requires [Daisy](https://github.com/OpertusMundi/discovery-service) running in t
 
 ## Installation instructions
 
-Download the wheel that is added to any release, and then execute the following command in your desired conda/jupyter environment:
-```
-pip install <location of wheel>
-```
-
-Then start Jupyter Lab in that environment, or if it was already running, refresh the browser window.
+1. Go to the [releases](https://github.com/Archer6621/jupyterlab-daisy/releases)
+2. On the latest release, download the wheel (`.whl` file) that is attached to it (usually named something like `jupyterlab_daisy-#.#.#-py3-none-any.whl`)
+3. Execute `pip install <location of downloaded wheel>` while your desired jupyter/conda environment is active
+4. Then start Jupyter Lab in that environment, or if it was already running, refresh the browser window.
 
 
 ## Development
