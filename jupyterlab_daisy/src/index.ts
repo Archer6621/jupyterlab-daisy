@@ -88,7 +88,7 @@ class ButtonExtension
             list.className = 'my-list';
             this.sidebar?.node.appendChild(list);
 
-            fetch(`http://localhost:443/get-joinable?table_name=${value}`).then(
+            fetch(`http://localhost:443/get-joinable?source_table=${value}`).then(
               response => {
                 if (response.status === 200) {
                   response.json().then(json => {
