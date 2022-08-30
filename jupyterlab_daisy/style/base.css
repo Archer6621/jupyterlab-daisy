@@ -21,6 +21,27 @@
     flex-grow: 1;
 }
 
+.my-column-table-div {
+
+    transition: height 0.25s, opacity 0.5s;
+
+    flex-basis: 100%;
+    pointer-events: visible;
+    opacity: 1;
+    width: 100%;
+    background: var(--jp-layout-color2);
+}
+
+.my-column-table-div-collapsed {
+
+    transition: height 0.25s, opacity 0.1s;
+    pointer-events: none;
+
+    opacity: 0;
+    width: 100%;
+}
+
+
 .my-highlighted-item {
     font-family: var(--jp-code-font-family);
     padding: 12px;
@@ -28,9 +49,46 @@
     background: var(--jp-layout-color2);
 } 
 
+.my-button {
+    width: 16px;
+    height: 16px;
+    padding: 0px;
+    line-height: 16px;
+    margin: 4px;
+    background: var(--jp-layout-color2);
+    border-style: solid;
+    border-radius: 0px;
+    border-color:  var(--jp-shadow-ambient-color);
+    outline:none;  
+    font-family: var(--jp-code-font-family);
+
+}
+
+.alnright {
+    text-align: right;
+}
+
+.my-button-toggled {
+    width: 16px;
+    height: 16px;
+    padding: 0px;
+    line-height: 16px;
+    margin: 4px;
+    background: var(--jp-shadow-ambient-color);
+    border-style: solid;
+    border-radius: 0px;
+    border-color:  var(--jp-shadow-ambient-color);  
+    outline:none;
+    font-family: var(--jp-code-font-family);
+
+}
+
 
 .my-list-item {
+    align-items: center;
     font-family: var(--jp-code-font-family);
+    display: flex;
+    flex-wrap: wrap;
     padding: 12px;
     border-top: 1px solid var(--jp-shadow-ambient-color);
 } 
@@ -39,7 +97,6 @@
     background: var(--jp-editor-selected-background);
 } 
 
-.my-list-item:active {
-    background: var(--jp-editor-selected-background);
+.my-list-item-text:hover {
     color: var(--jp-layout-color1);
 } 

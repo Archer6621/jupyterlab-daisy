@@ -88,26 +88,85 @@ class ButtonExtension
             list.className = 'my-list';
             this.sidebar?.node.appendChild(list);
 
-            fetch(`http://localhost:443/get-joinable?source_table=${value}`).then(
-              response => {
-                if (response.status === 200) {
-                  response.json().then(json => {
-                    json.forEach((entry: { table_name: string }) => {
+            fetch(
+              `http://localhost:443/get-joinable?source_table=${value}`
+            ).then(response => {
+              if (response.status === 200) {
+                response.json().then(json => {
+                  json.forEach(
+                    (entry: {
+                      table_name: string;
+                      matches: Record<string, Record<string, string>>[];
+                    }) => {
                       const bla = document.createElement('li');
-                      bla.textContent = entry.table_name;
+                      bla.setAttribute(
+                        'title',
+                        `Matched ${entry.matches.length} columns, click '+' for details...`
+                      );
+                      const button = document.createElement('button');
+                      button.className = 'my-button';
+                      button.textContent = '+';
+                      const text = document.createElement('p');
+                      text.textContent = entry.table_name;
+                      text.className = 'my-list-item-text';
+                      const tableContainer = document.createElement('div');
+                      const table = document.createElement('table');
+                      table.setAttribute('style', 'width: 100%;');
+                      tableContainer.className =
+                        'my-column-table-div-collapsed';
+                      tableContainer.setAttribute('style', 'height: 0px');
+
+                      tableContainer.appendChild(table);
+                      bla.appendChild(button);
+                      bla.appendChild(text);
+                      bla.appendChild(tableContainer);
                       bla.className = 'my-list-item';
-                      bla.onclick = ev =>
+                      const tableHeader = document.createElement('tr');
+                      tableHeader.innerHTML = `
+                      <th>Column Name</th>
+                      <th>COMA Score</th>
+                      `;
+                      table.appendChild(tableHeader);
+                      entry.matches.forEach(match => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                          <td>${match['PK']['from_id']}</td>
+                          <td class='alnright'>${match['RELATED']['coma']}</td>
+                        `;
+                        table.appendChild(tr);
+                      });
+
+                      button.onclick = () => {
+                        if (
+                          tableContainer.className === 'my-column-table-div'
+                        ) {
+                          tableContainer.className =
+                            'my-column-table-div-collapsed';
+                          button.className = 'my-button';
+                          button.textContent = '+';
+                          tableContainer.setAttribute('style', 'height: 0px');
+                        } else {
+                          tableContainer.className = 'my-column-table-div';
+                          button.className = 'my-button-toggled';
+                          button.textContent = '-';
+                          tableContainer.setAttribute(
+                            'style',
+                            `height: ${table.clientHeight}px`
+                          );
+                        }
+                      };
+                      text.onclick = ev =>
                         this.closeAndReplace(ev, editor, noExt, this.sidebar);
                       list.appendChild(bla);
-                    });
-                  });
-                } else {
-                  const bla = document.createElement('li');
-                  bla.textContent = 'No related tables found!';
-                  list.appendChild(bla);
-                }
+                    }
+                  );
+                });
+              } else {
+                const bla = document.createElement('li');
+                bla.textContent = 'No related tables found!';
+                list.appendChild(bla);
               }
-            );
+            });
           }
         }
       }
