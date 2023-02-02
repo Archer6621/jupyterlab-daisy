@@ -1,0 +1,15 @@
+{
+  "jupyter.lab.shortcuts": [],
+  "title": "jupyterlab_daisy",
+  "description": "jupyterlab_daisy settings.",
+  "type": "object",
+  "properties": {
+    "daisy_address": {
+      "type": "string",
+      "title": "Daisy Address",
+      "description": "The address to Daisy's API",
+      "default": "localhost:443"
+    }
+  },
+  "additionalProperties": false
+}

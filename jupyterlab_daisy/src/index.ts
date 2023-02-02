@@ -3,6 +3,8 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
+
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 
 import { INotebookTracker } from '@jupyterlab/notebook';
@@ -14,6 +16,7 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 import { IDisposable } from '@lumino/disposable';
 
+
 // TODO: Should probably split sidebar logic/layout from button class
 class ButtonExtension
   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel>
@@ -21,6 +24,7 @@ class ButtonExtension
   app: JupyterFrontEnd;
   tracker: INotebookTracker;
   sidebar?: Panel = undefined;
+  daisy_address: string = "";
 
   constructor(app: JupyterFrontEnd, tracker: INotebookTracker) {
     this.app = app;
@@ -41,6 +45,10 @@ class ButtonExtension
       chosen = chosen.split('.')[0];
     }
     editor.replaceSelection(`${chosen}`);
+  }
+
+  setDaisyAddress(daisy_address: string): void {
+      this.daisy_address = daisy_address;
   }
 
   createNew(
@@ -88,7 +96,7 @@ class ButtonExtension
             list.className = 'my-list';
             this.sidebar?.node.appendChild(list);
 
-            fetch(`http://localhost:443/get-joinable?asset_id=${value}`).then(
+            fetch(`http://${this.daisy_address}/get-joinable?asset_id=${value}`).then(
               response => {
                 if (response.status === 200) {
                   response.json().then(json => {
@@ -185,17 +193,28 @@ class ButtonExtension
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab_daisy:plugin',
   autoStart: true,
-  requires: [ICommandPalette, INotebookTracker],
+  optional: [ISettingRegistry, ICommandPalette, INotebookTracker],
   activate: (
-    app: JupyterFrontEnd,
+    app: JupyterFrontEnd, 
+    settingRegistry: ISettingRegistry | null,
     palette: ICommandPalette,
-    tracker: INotebookTracker
-  ) => {
+    tracker: INotebookTracker) => {
     console.log('JupyterLab extension jupyterlab_daisy is activated!');
-    console.log('ICommandPalette:', palette);
-    console.log('?');
-
     const button = new ButtonExtension(app, tracker);
+
+    if (settingRegistry) {
+      settingRegistry
+        .load(plugin.id)
+        .then(settings => {
+          console.log('jupyterlab_daisy settings loaded:', settings.composite);
+          const daisy_address = settings.get('daisy_address').composite as string;
+          button.setDaisyAddress(daisy_address);
+        })
+        .catch(reason => {
+          console.error('Failed to load settings for jupyterlab_daisy.', reason);
+        });
+    }
+
     app.docRegistry.addWidgetExtension('Notebook', button);
   }
 };
