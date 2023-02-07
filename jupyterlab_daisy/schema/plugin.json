@@ -8,7 +8,7 @@
       "type": "string",
       "title": "Daisy Address",
       "description": "The address to Daisy's API",
-      "default": "localhost:443"
+      "default": "localhost:8080"
     }
   },
   "additionalProperties": false
