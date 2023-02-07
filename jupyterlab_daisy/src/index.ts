@@ -36,14 +36,10 @@ class ButtonExtension
   closeAndReplace(
     ev: MouseEvent,
     editor: CodeMirrorEditor,
-    omitExtension: boolean,
     sidebar?: Panel
   ): void {
     sidebar?.close();
     let chosen = (ev.target as Element).textContent ?? '';
-    if (omitExtension) {
-      chosen = chosen.split('.')[0];
-    }
     editor.replaceSelection(`${chosen}`);
   }
 
@@ -68,12 +64,6 @@ class ButtonExtension
             editor.getCursor('end')
           );
 
-          // If the selected value has no extension, we assume it to be 'csv'
-          let noExt = false;
-          if (!value.includes('.')) {
-            value += '.csv';
-            noExt = true;
-          }
 
           if (value.length > 0) {
             this.sidebar = new Panel();
@@ -102,7 +92,7 @@ class ButtonExtension
                   response.json().then(json => {
                     json['JoinableTables'].forEach(
                       (entry: {
-                        table_name: string;
+                        table_path: string;
                         matches: Record<string, Record<string, string>>[];
                       }) => {
                         const bla = document.createElement('li');
@@ -114,7 +104,7 @@ class ButtonExtension
                         button.className = 'my-button';
                         button.textContent = '+';
                         const text = document.createElement('p');
-                        text.textContent = entry.table_name;
+                        text.textContent = entry.table_path.split('/')[0];
                         text.className = 'my-list-item-text';
                         const tableContainer = document.createElement('div');
                         const table = document.createElement('table');
@@ -163,7 +153,7 @@ class ButtonExtension
                           }
                         };
                         text.onclick = ev =>
-                          this.closeAndReplace(ev, editor, noExt, this.sidebar);
+                          this.closeAndReplace(ev, editor, this.sidebar);
                         list.appendChild(bla);
                       }
                     );
