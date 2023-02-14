@@ -35,7 +35,10 @@ class RouteHandler(APIHandler):
         asset_id = self.get_query_argument("asset_id")
         daisy_url = c.daisy_url
         r = requests.get(f"{daisy_url}/get-joinable?asset_id={asset_id}")
-        self.finish(json.dumps(r.json()))
+        if r.status_code == 200:
+            self.finish(json.dumps(r.json()))
+        else:
+            self.finish(f"Failure, Daisy responded with status {r.status_code}: {r.reason}")
 
 
 def setup_handlers(web_app):
