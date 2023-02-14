@@ -24,6 +24,7 @@ class ButtonExtension
   app: JupyterFrontEnd;
   tracker: INotebookTracker;
   sidebar?: Panel = undefined;
+  editor?: CodeMirrorEditor = undefined;
   daisy_address: string = "";
 
   constructor(app: JupyterFrontEnd, tracker: INotebookTracker) {
@@ -35,17 +36,95 @@ class ButtonExtension
   // TODO: If the user modifies the selection, the sidebar should also close
   closeAndReplace(
     ev: MouseEvent,
-    editor: CodeMirrorEditor,
     sidebar?: Panel
   ): void {
     sidebar?.close();
     let chosen = (ev.target as Element).textContent ?? '';
-    editor.replaceSelection(`${chosen}`);
+    this.editor?.replaceSelection(`${chosen}`);
   }
 
   setDaisyAddress(daisy_address: string): void {
       this.daisy_address = daisy_address;
   }
+
+
+  populateList(asset_name: string, list: HTMLElement): void {
+            while (list.firstChild != null) {
+              list.removeChild(list.firstChild);
+            }
+            requestAPI<any>(`get-joinable?asset_id=${asset_name}`)
+            .then(json => {
+                  json['JoinableTables'].forEach(
+                    (entry: {
+                      table_path: string;
+                      matches: Record<string, Record<string, string>>[];
+                    }) => {
+                      const bla = document.createElement('li');
+                      bla.setAttribute(
+                        'title',
+                        `Matched ${entry.matches.length} columns, click '+' for details...`
+                      );
+                      const button = document.createElement('button');
+                      button.className = 'my-button';
+                      button.textContent = '+';
+                      const text = document.createElement('p');
+                      text.textContent = entry.table_path.split('/')[0];
+                      text.className = 'my-list-item-text';
+                      const tableContainer = document.createElement('div');
+                      const table = document.createElement('table');
+                      table.setAttribute('style', 'width: 100%;');
+                      tableContainer.className =
+                        'my-column-table-div-collapsed';
+                      tableContainer.setAttribute('style', 'height: 0px');
+
+                      tableContainer.appendChild(table);
+                      bla.appendChild(button);
+                      bla.appendChild(text);
+                      bla.appendChild(tableContainer);
+                      bla.className = 'my-list-item';
+                      const tableHeader = document.createElement('tr');
+                      tableHeader.innerHTML = `
+                    <th>Column Name</th>
+                    <th align="right">COMA Score</th>
+                    `;
+                      table.appendChild(tableHeader);
+                      entry.matches.forEach(match => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                        <td>${match['PK']['from_id']}</td>
+                        <td class='alnright'>${match['RELATED']['coma']}</td>
+                      `;
+                        table.appendChild(tr);
+                      });
+
+                      button.onclick = () => {
+                        if (
+                          tableContainer.className === 'my-column-table-div'
+                        ) {
+                          tableContainer.className =
+                            'my-column-table-div-collapsed';
+                          button.className = 'my-button';
+                          button.textContent = '+';
+                          tableContainer.setAttribute('style', 'height: 0px');
+                        } else {
+                          tableContainer.className = 'my-column-table-div';
+                          button.className = 'my-button-toggled';
+                          button.textContent = '-';
+                          tableContainer.setAttribute(
+                            'style',
+                            `height: ${table.clientHeight}px`
+                          );
+                        }
+                      };
+                      text.onclick = ev =>
+                        this.closeAndReplace(ev, this.sidebar);
+                      list.appendChild(bla);
+                    }
+                  );
+                })
+            .catch(reason => {console.error('AEUHHH????', reason);});
+  }
+
 
   createNew(
     panel: NotebookPanel,
@@ -53,114 +132,60 @@ class ButtonExtension
   ): IDisposable {
     const mybutton = new ToolbarButton({
       icon: paletteIcon,
+      tooltip: "Augment Data",
       onClick: () => {
         this.sidebar?.close();
 
         const activeCell = this.tracker.activeCell;
         if (activeCell !== null) {
-          const editor = activeCell.editor as CodeMirrorEditor;
-          let value = editor.getRange(
-            editor.getCursor('start'),
-            editor.getCursor('end')
+          this.editor = activeCell.editor as CodeMirrorEditor;
+          let value = this.editor.getRange(
+            this.editor.getCursor('start'),
+            this.editor.getCursor('end')
           );
 
 
-          if (value.length > 0) {
-            this.sidebar = new Panel();
-            this.sidebar.addClass('my-panel');
-            this.sidebar.id = 'daisy-jupyterlab';
-            this.sidebar.title.icon = paletteIcon;
-            this.app.shell.add(this.sidebar, 'right', { rank: 50000 });
-            this.app.shell.activateById(this.sidebar.id);
+          this.sidebar = new Panel();
+          this.sidebar.addClass('my-panel');
+          this.sidebar.id = 'daisy-jupyterlab';
+          this.sidebar.title.icon = paletteIcon;
+          this.app.shell.add(this.sidebar, 'right', { rank: 50000 });
+          this.app.shell.activateById(this.sidebar.id);
 
-            const bla = document.createElement('h1');
-            bla.textContent = 'Related Datasets';
-            this.sidebar?.node.appendChild(bla);
+          const header = document.createElement('h1');
+          header.textContent = 'Related Datasets';
 
-            const capt = document.createElement('h2');
-            capt.textContent = `'${value}'`;
-            capt.className = 'my-highlighted-item';
-            this.sidebar?.node.appendChild(capt);
+          const form = document.createElement('form');
+          const inp = document.createElement('input')
+          inp.type = "text"
+          inp.name = "name"
+          inp.value = value
+          inp.className = 'my-highlighted-item';
 
-            const list = document.createElement('ul');
-            list.className = 'my-list';
-            this.sidebar?.node.appendChild(list);
 
-            
 
-            requestAPI<any>(`get-joinable?asset_id=${value}`)
-            .then(json => {
-                    console.log(json)
-                    json['JoinableTables'].forEach(
-                      (entry: {
-                        table_path: string;
-                        matches: Record<string, Record<string, string>>[];
-                      }) => {
-                        const bla = document.createElement('li');
-                        bla.setAttribute(
-                          'title',
-                          `Matched ${entry.matches.length} columns, click '+' for details...`
-                        );
-                        const button = document.createElement('button');
-                        button.className = 'my-button';
-                        button.textContent = '+';
-                        const text = document.createElement('p');
-                        text.textContent = entry.table_path.split('/')[0];
-                        text.className = 'my-list-item-text';
-                        const tableContainer = document.createElement('div');
-                        const table = document.createElement('table');
-                        table.setAttribute('style', 'width: 100%;');
-                        tableContainer.className =
-                          'my-column-table-div-collapsed';
-                        tableContainer.setAttribute('style', 'height: 0px');
+          const list = document.createElement('ul');
+          list.className = 'my-list';
 
-                        tableContainer.appendChild(table);
-                        bla.appendChild(button);
-                        bla.appendChild(text);
-                        bla.appendChild(tableContainer);
-                        bla.className = 'my-list-item';
-                        const tableHeader = document.createElement('tr');
-                        tableHeader.innerHTML = `
-                      <th>Column Name</th>
-                      <th>COMA Score</th>
-                      `;
-                        table.appendChild(tableHeader);
-                        entry.matches.forEach(match => {
-                          const tr = document.createElement('tr');
-                          tr.innerHTML = `
-                          <td>${match['PK']['from_id']}</td>
-                          <td class='alnright'>${match['RELATED']['coma']}</td>
-                        `;
-                          table.appendChild(tr);
-                        });
+          form.appendChild(inp); 
+          const temp = this;
+          form.onsubmit = function(event) {
+            event.preventDefault();
+            event.stopPropagation();
 
-                        button.onclick = () => {
-                          if (
-                            tableContainer.className === 'my-column-table-div'
-                          ) {
-                            tableContainer.className =
-                              'my-column-table-div-collapsed';
-                            button.className = 'my-button';
-                            button.textContent = '+';
-                            tableContainer.setAttribute('style', 'height: 0px');
-                          } else {
-                            tableContainer.className = 'my-column-table-div';
-                            button.className = 'my-button-toggled';
-                            button.textContent = '-';
-                            tableContainer.setAttribute(
-                              'style',
-                              `height: ${table.clientHeight}px`
-                            );
-                          }
-                        };
-                        text.onclick = ev =>
-                          this.closeAndReplace(ev, editor, this.sidebar);
-                        list.appendChild(bla);
-                      }
-                    );
-                  })
-            .catch(reason => {console.error('AEUHHH????', reason);});
+            // TODO: Split off population of bar to other function
+            // populateList(event.)
+            const name = form.elements[0] as HTMLInputElement;
+            console.log(name.value)
+            temp.populateList(name.value, list)
           }
+
+          this.sidebar?.node.appendChild(header);
+          this.sidebar?.node.appendChild(form);
+          this.sidebar?.node.appendChild(list);
+
+          this.populateList(value, list);
+        
         }
       }
     });

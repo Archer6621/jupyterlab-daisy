@@ -47,6 +47,8 @@
     padding: 12px;
     border-top: 1px solid var(--jp-shadow-ambient-color);
     background: var(--jp-layout-color2);
+    width: 100%;
+    box-sizing: border-box;
 } 
 
 .my-button {
