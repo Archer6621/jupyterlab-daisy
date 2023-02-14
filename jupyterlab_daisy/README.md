@@ -3,6 +3,10 @@
 [![Github Actions Status](https://github.com/Archer6621/jupyterlab-daisy/workflows/Build/badge.svg)](https://github.com/Archer6621/jupyterlab-daisy/actions/workflows/build.yml)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Archer6621/jupyterlab-daisy/main?urlpath=lab)
 A JupyterLab extension.
 
+This extension is composed of a Python package named `jupyterlab_daisy`
+for the server extension and a NPM package named `jupyterlab_daisy`
+for the frontend extension.
+
 ## Requirements
 
 - JupyterLab >= 3.0
@@ -23,6 +27,22 @@ To remove the extension, execute:
 pip uninstall jupyterlab_daisy
 ```
 
+## Troubleshoot
+
+If you are seeing the frontend extension, but it is not working, check
+that the server extension is enabled:
+
+```bash
+jupyter server extension list
+```
+
+If the server extension is installed and enabled, but you are not seeing
+the frontend extension, check the frontend extension is installed:
+
+```bash
+jupyter labextension list
+```
+
 ## Contributing
 
 ### Development install
@@ -37,9 +57,11 @@ The `jlpm` command is JupyterLab's pinned version of
 # Clone the repo to your local environment
 # Change directory to the jupyterlab_daisy directory
 # Install package in development mode
-pip install -e .
+pip install -e ".[test]"
 # Link your development version of the extension with JupyterLab
 jupyter labextension develop . --overwrite
+# Server extension must be manually installed in develop mode
+jupyter server extension enable jupyterlab_daisy
 # Rebuild extension Typescript source after making changes
 jlpm build
 ```
@@ -64,12 +86,52 @@ jupyter lab build --minimize=False
 ### Development uninstall
 
 ```bash
+# Server extension must be manually disabled in develop mode
+jupyter server extension disable jupyterlab_daisy
 pip uninstall jupyterlab_daisy
 ```
 
 In development mode, you will also need to remove the symlink created by `jupyter labextension develop`
 command. To find its location, you can run `jupyter labextension list` to figure out where the `labextensions`
 folder is located. Then you can remove the symlink named `jupyterlab_daisy` within that folder.
+
+### Testing the extension
+
+#### Server tests
+
+This extension is using [Pytest](https://docs.pytest.org/) for Python code testing.
+
+Install test dependencies (needed only once):
+
+```sh
+pip install -e ".[test]"
+# Each time you install the Python package, you need to restore the front-end extension link
+jupyter labextension develop . --overwrite
+```
+
+To execute them, run:
+
+```sh
+pytest -vv -r ap --cov jupyterlab_daisy
+```
+
+#### Frontend tests
+
+This extension is using [Jest](https://jestjs.io/) for JavaScript code testing.
+
+To execute them, execute:
+
+```sh
+jlpm
+jlpm test
+```
+
+#### Integration tests
+
+This extension uses [Playwright](https://playwright.dev/docs/intro/) for the integration tests (aka user level tests).
+More precisely, the JupyterLab helper [Galata](https://github.com/jupyterlab/jupyterlab/tree/master/galata) is used to handle testing the extension in JupyterLab.
+
+More information are provided within the [ui-tests](./ui-tests/README.md) README.
 
 ### Packaging the extension
 

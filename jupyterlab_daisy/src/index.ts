@@ -4,17 +4,17 @@ import {
 } from '@jupyterlab/application';
 
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-
+import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { INotebookModel, NotebookPanel, INotebookTracker } from '@jupyterlab/notebook';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
-
-import { INotebookTracker } from '@jupyterlab/notebook';
 import { ToolbarButton, ICommandPalette } from '@jupyterlab/apputils';
 import { paletteIcon } from '@jupyterlab/ui-components';
-import { Panel } from '@lumino/widgets';
 
-import { DocumentRegistry } from '@jupyterlab/docregistry';
-import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+import { Panel } from '@lumino/widgets';
 import { IDisposable } from '@lumino/disposable';
+
+import { requestAPI } from './handler';
+
 
 
 // TODO: Should probably split sidebar logic/layout from button class
@@ -86,10 +86,11 @@ class ButtonExtension
             list.className = 'my-list';
             this.sidebar?.node.appendChild(list);
 
-            fetch(`http://${this.daisy_address}/get-joinable?asset_id=${value}`).then(
-              response => {
-                if (response.status === 200) {
-                  response.json().then(json => {
+            
+
+            requestAPI<any>(`get-joinable?asset_id=${value}`)
+            .then(json => {
+                    console.log(json)
                     json['JoinableTables'].forEach(
                       (entry: {
                         table_path: string;
@@ -157,14 +158,8 @@ class ButtonExtension
                         list.appendChild(bla);
                       }
                     );
-                  });
-                } else {
-                  const bla = document.createElement('li');
-                  bla.textContent = 'No related tables found!';
-                  list.appendChild(bla);
-                }
-              }
-            );
+                  })
+            .catch(reason => {console.error('AEUHHH????', reason);});
           }
         }
       }
@@ -176,6 +171,7 @@ class ButtonExtension
     return mybutton;
   }
 }
+
 
 /**
  * Initialization data for the jupyterlab_daisy extension.
@@ -190,21 +186,19 @@ const plugin: JupyterFrontEndPlugin<void> = {
     palette: ICommandPalette,
     tracker: INotebookTracker) => {
     console.log('JupyterLab extension jupyterlab_daisy is activated!');
-    const button = new ButtonExtension(app, tracker);
 
     if (settingRegistry) {
       settingRegistry
         .load(plugin.id)
         .then(settings => {
           console.log('jupyterlab_daisy settings loaded:', settings.composite);
-          const daisy_address = settings.get('daisy_address').composite as string;
-          button.setDaisyAddress(daisy_address);
         })
         .catch(reason => {
           console.error('Failed to load settings for jupyterlab_daisy.', reason);
         });
     }
 
+    const button = new ButtonExtension(app, tracker);
     app.docRegistry.addWidgetExtension('Notebook', button);
   }
 };
