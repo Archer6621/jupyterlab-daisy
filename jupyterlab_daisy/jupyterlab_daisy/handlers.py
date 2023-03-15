@@ -6,22 +6,12 @@ from jupyter_server.utils import url_path_join
 from traitlets import Unicode
 from traitlets.config import Configurable
 
+from pathlib import Path
+
 import tornado
 
 import requests
 
-
-# See: https://github.com/jupyterlab/extension-examples/issues/91#issuecomment-607665752
-# "you could either set it in a Python script, in JSON or with CLI arguments:"
-# e.g., start Jupyter Lab with: `jupyter lab --JupyterlabDaisyConfig.daisy_url=URL_HERE`
-class JupyterlabDaisyConfig(Configurable):
-    """
-    Allows configuration of access to the Daisy api
-    """
-    daisy_url = Unicode(
-        'http://localhost:8080', config=True,
-        help="The URL for the Daisy api"
-    )
 
 
 class RouteHandler(APIHandler):
@@ -30,10 +20,14 @@ class RouteHandler(APIHandler):
     # Jupyter server
     @tornado.web.authenticated
     def get(self):
-        c = JupyterlabDaisyConfig(config=self.config)
+        daisy_url = "http://localhost:8080"
+        p = Path.home() / '.jupyter' / 'daisy_config.json'
+        if p.exists():
+            with open(p, 'r') as f:
+                c = json.load(f)
+                daisy_url = c["url"]
 
         asset_id = self.get_query_argument("asset_id")
-        daisy_url = c.daisy_url
         r = requests.get(f"{daisy_url}/get-joinable?asset_id={asset_id}")
         if r.status_code == 200:
             self.finish(json.dumps(r.json()))
