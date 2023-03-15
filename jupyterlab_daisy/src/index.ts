@@ -48,6 +48,93 @@ class ButtonExtension
   }
 
 
+populateListRelated(source_asset_name: string, target_asset_names: Array<string>, list: HTMLElement): void {
+            while (list.firstChild != null) {
+              list.removeChild(list.firstChild);
+            }
+            requestAPI<any>(`get-related?source_asset_id=${source_asset_name}&target_asset_ids=${target_asset_names.join(',')}`)
+            .then(json => {
+                  json['RelatedTables'].forEach(
+                    (entry: {
+                      links: Array<string>;
+                    }) => {
+                      const bla = document.createElement('li');
+
+                      const button = document.createElement('button');
+                      button.className = 'my-button';
+                      button.textContent = '+';
+                      const text = document.createElement('p');
+                      const splitLinks = entry.links.map(l => l.split('/'))
+                      const itemName = `${splitLinks[0][0]}/${splitLinks[0][splitLinks[0].length - 1]} -> ${splitLinks[splitLinks.length - 1][0]}/${splitLinks[splitLinks.length - 1][splitLinks[splitLinks.length - 1].length - 1]}`
+                      bla.setAttribute(
+                        'title',
+                        `${itemName}. Click '+' for details...`
+                      );
+                      text.textContent = itemName;
+                      text.className = 'my-list-item-text';
+                      const tableContainer = document.createElement('div');
+                      const table = document.createElement('table');
+                      table.setAttribute('style', 'width: 100%;');
+                      tableContainer.className =
+                        'my-column-table-div-collapsed';
+                      tableContainer.setAttribute('style', 'height: 0px');
+
+                      tableContainer.appendChild(table);
+
+                      const itemDiv = document.createElement('div')
+                      itemDiv.className = 'my-list-item-div'
+
+                      itemDiv.appendChild(button)
+                      itemDiv.appendChild(text)
+                      bla.appendChild(itemDiv);
+                      bla.appendChild(tableContainer);
+                      bla.className = 'my-list-item';
+                      const tableHeader = document.createElement('tr');
+                      tableHeader.innerHTML = `
+                    <th>Connected via</th>
+                    `;
+
+
+                      table.appendChild(tableHeader);
+
+                      splitLinks.forEach(link => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                        <td>${link[0]}/${link[link.length - 1]}</td>
+                      `;
+                        table.appendChild(tr);
+                      })
+
+
+                      button.onclick = () => {
+                        if (
+                          tableContainer.className === 'my-column-table-div'
+                        ) {
+                          tableContainer.className =
+                            'my-column-table-div-collapsed';
+                          button.className = 'my-button';
+                          button.textContent = '+';
+                          tableContainer.setAttribute('style', 'height: 0px');
+                        } else {
+                          tableContainer.className = 'my-column-table-div';
+                          button.className = 'my-button-toggled';
+                          button.textContent = '-';
+                          tableContainer.setAttribute(
+                            'style',
+                            `height: ${table.clientHeight}px`
+                          );
+                        }
+                      };
+                      text.onclick = ev =>
+                        this.closeAndReplace(ev, this.sidebar);
+                      list.appendChild(bla);
+                    }
+                  );
+                })
+            .catch(reason => {console.error('AEUHHH????', reason);});
+  }
+
+
   populateList(asset_name: string, list: HTMLElement): void {
             while (list.firstChild != null) {
               list.removeChild(list.firstChild);
@@ -78,8 +165,12 @@ class ButtonExtension
                       tableContainer.setAttribute('style', 'height: 0px');
 
                       tableContainer.appendChild(table);
-                      bla.appendChild(button);
-                      bla.appendChild(text);
+                      const itemDiv = document.createElement('div')
+                      itemDiv.className = 'my-list-item-div'
+
+                      itemDiv.appendChild(button)
+                      itemDiv.appendChild(text)
+                      bla.appendChild(itemDiv);
                       bla.appendChild(tableContainer);
                       bla.className = 'my-list-item';
                       const tableHeader = document.createElement('tr');
@@ -90,9 +181,11 @@ class ButtonExtension
                       table.appendChild(tableHeader);
                       entry.matches.forEach(match => {
                         const tr = document.createElement('tr');
+                        const split = match['PK']['from_id'].split('/')
+                        tr.setAttribute('title', match['PK']['from_id'])
                         tr.innerHTML = `
-                        <td>${match['PK']['from_id']}</td>
-                        <td class='alnright'>${match['RELATED']['coma']}</td>
+                        <td>${split[0]}/${split[split.length-1]}</td>
+                        <td class='alnright'>${parseFloat(match['RELATED']['coma']).toFixed(3)}</td>
                       `;
                         table.appendChild(tr);
                       });
@@ -155,32 +248,124 @@ class ButtonExtension
           const header = document.createElement('h1');
           header.textContent = 'Related Datasets';
 
-          const form = document.createElement('form');
+
+          const runButton = document.createElement('button');
+          runButton.textContent = 'Execute Query';
+          runButton.className = 'my-query-button'
+
+
           const inp = document.createElement('input')
           inp.type = "text"
           inp.name = "name"
+          inp.id = "source"
           inp.value = value
           inp.className = 'my-highlighted-item';
+          inp.placeholder = "Source Table Name"
+
+          const sep = document.createElement('hr')
+          sep.className = 'solid'
+
+          const additionalFields = document.createElement('div');
+          additionalFields.id = "targets"
+
+          const form = document.createElement('form');
+          
+          form.appendChild(inp); 
+          form.appendChild(sep);
+          form.appendChild(additionalFields);
+          form.appendChild(runButton);
+
+          const checkbox = document.createElement('input')
+          checkbox.type="checkbox"
+          checkbox.id="related"
+          checkbox.name="related"
+
+          const checkboxLabel = document.createElement('label')
+          checkboxLabel.htmlFor = "related"
+          checkboxLabel.textContent = "Connect to existing assets"
+
+          const checkboxSpan = document.createElement('span')
+          checkboxSpan.appendChild(checkbox)
+          checkboxSpan.appendChild(checkboxLabel)
+
+          const addField = function(node: HTMLElement|null) {
+              const extraInp = document.createElement('input')
+              extraInp.type = "text"
+              extraInp.name = `target-${additionalFields.childElementCount}`
+              extraInp.value = ""
+              extraInp.className = 'my-highlighted-item';
+
+              const delButton = document.createElement('button');
+              delButton.className = 'my-button';
+              delButton.textContent = '-';
+              delButton.type = "button"
+
+              const fieldSpan = document.createElement('span')
+              fieldSpan.className = "my-input-span"
+              fieldSpan.appendChild(extraInp)
+              fieldSpan.appendChild(delButton)
+
+              delButton.onclick = (event) => {
+                fieldSpan.remove()
+                for (let i = 0; i < additionalFields.childElementCount; i++) {
+                  (additionalFields.children[i].children[0] as HTMLInputElement).placeholder = `Table Name ${i}`;
+                }
+              }
+
+
+              additionalFields.insertBefore(fieldSpan, node?.nextSibling ?? null);
+
+              for (let i = 0; i < additionalFields.childElementCount; i++) {
+                (additionalFields.children[i].children[0] as HTMLInputElement).placeholder = `Table Name ${i}`;
+              }
+          }
+
+
+
+          checkbox.addEventListener('change', (event) => {
+            if ((event.currentTarget as HTMLInputElement).checked) {
+              addField(null);
+              const addButton = document.createElement('button');
+              addButton.className = 'my-query-button';
+              addButton.textContent = 'Add Item';
+              addButton.type = "button"
+              addButton.onclick = () => {addField(additionalFields.lastChild as HTMLElement)}
+              addButton.id = "addButton";
+              form.insertBefore(addButton, runButton)
+            } else {
+              while (additionalFields.firstChild != null) {
+                additionalFields.removeChild(additionalFields.firstChild);
+              }
+              document.getElementById('addButton')!.remove();
+            }
+          })
+
+
 
 
 
           const list = document.createElement('ul');
           list.className = 'my-list';
 
-          form.appendChild(inp); 
           const temp = this;
           form.onsubmit = function(event) {
             event.preventDefault();
             event.stopPropagation();
 
-            // TODO: Split off population of bar to other function
-            // populateList(event.)
-            const name = form.elements[0] as HTMLInputElement;
-            console.log(name.value)
-            temp.populateList(name.value, list)
+            if (!checkbox.checked) {
+              temp.populateList(inp.value, list)
+            } else {
+              const targets = []
+              for (const child of additionalFields.children) {
+                const target = (child.children[0] as HTMLInputElement).value
+                targets.push(target)
+              }
+              temp.populateListRelated(inp.value, targets, list);
+            }
           }
 
           this.sidebar?.node.appendChild(header);
+          this.sidebar?.node.appendChild(checkboxSpan);
           this.sidebar?.node.appendChild(form);
           this.sidebar?.node.appendChild(list);
 

@@ -63,7 +63,20 @@
     border-color:  var(--jp-shadow-ambient-color);
     outline:none;  
     font-family: var(--jp-code-font-family);
+    min-width: 16px;
+    min-height: 16px;
+}
 
+.my-query-button {
+    padding: 4px;
+    line-height: 16px;
+    margin: 8px;
+    background: var(--jp-layout-color2);
+    border-style: solid;
+    border-radius: 0px;
+    border-color:  var(--jp-shadow-ambient-color);
+    outline:none;  
+    font-family: var(--jp-code-font-family);
 }
 
 .alnright {
@@ -82,23 +95,45 @@
     border-color:  var(--jp-shadow-ambient-color);  
     outline:none;
     font-family: var(--jp-code-font-family);
-
+    min-width: 16px;
+    min-height: 16px;
 }
 
 
 .my-list-item {
-    align-items: center;
     font-family: var(--jp-code-font-family);
-    display: flex;
-    flex-wrap: wrap;
     padding: 12px;
     border-top: 1px solid var(--jp-shadow-ambient-color);
+    text-overflow: ellipsis;
+
 } 
+
+.my-input-span {
+    display: flex;
+    align-items: center;
+}
+
+.my-list-item-div {
+    display: flex;
+    align-items: center;
+}
 
 .my-list-item:hover {
     background: var(--jp-editor-selected-background);
 } 
 
+.my-list-item-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+} 
+
 .my-list-item-text:hover {
     color: var(--jp-layout-color1);
 } 
+
+
+/* Solid border */
+hr.solid {
+  border-top: 3px solid #bbb;
+}
