@@ -24,6 +24,7 @@ class GetJoinable(APIHandler):
         if r.status_code == 200:
             self.finish(json.dumps(r.json()))
         else:
+            self.set_status(r.status_code)
             self.finish(f"Failure, Daisy responded with status {r.status_code}: {r.reason}")
 
 
@@ -42,6 +43,7 @@ class GetRelated(APIHandler):
         if r.status_code == 200:
             self.finish(json.dumps(r.json()))
         else:
+            self.set_status(r.status_code)
             self.finish(f"Failure, Daisy responded with status {r.status_code}: {r.reason}")
 
 

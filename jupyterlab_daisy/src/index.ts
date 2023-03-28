@@ -48,13 +48,14 @@ class ButtonExtension
   }
 
 
+// TODO: Remove code duplication
 populateListRelated(source_asset_name: string, target_asset_names: Array<string>, list: HTMLElement): void {
             while (list.firstChild != null) {
               list.removeChild(list.firstChild);
             }
             requestAPI<any>(`get-related?source_asset_id=${source_asset_name}&target_asset_ids=${target_asset_names.join(',')}`)
             .then(json => {
-                  json['RelatedTables'].forEach(
+                  json['RelatedTables']?.forEach(
                     (entry: {
                       links: Array<string>;
                     }) => {
@@ -65,7 +66,7 @@ populateListRelated(source_asset_name: string, target_asset_names: Array<string>
                       button.textContent = '+';
                       const text = document.createElement('p');
                       const splitLinks = entry.links.map(l => l.split('/'))
-                      const itemName = `${splitLinks[0][0]}/${splitLinks[0][splitLinks[0].length - 1]} -> ${splitLinks[splitLinks.length - 1][0]}/${splitLinks[splitLinks.length - 1][splitLinks[splitLinks.length - 1].length - 1]}`
+                      const itemName = `${splitLinks[0][splitLinks[0].length - 2]}/${splitLinks[0][splitLinks[0].length - 1]} -> ${splitLinks[splitLinks.length - 1][splitLinks[splitLinks.length - 1].length - 2]}/${splitLinks[splitLinks.length - 1][splitLinks[splitLinks.length - 1].length - 1]}`
                       bla.setAttribute(
                         'title',
                         `${itemName}. Click '+' for details...`
@@ -100,7 +101,7 @@ populateListRelated(source_asset_name: string, target_asset_names: Array<string>
                       splitLinks.forEach(link => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                        <td>${link[0]}/${link[link.length - 1]}</td>
+                        <td>${link[link.length - 2]}/${link[link.length - 1]}</td>
                       `;
                         table.appendChild(tr);
                       })
@@ -131,7 +132,18 @@ populateListRelated(source_asset_name: string, target_asset_names: Array<string>
                     }
                   );
                 })
-            .catch(reason => {console.error('AEUHHH????', reason);});
+            .catch(reason => {
+                const notFound = document.createElement('div');
+                notFound.className = "my-list-item-error"
+                notFound.textContent = "Oh no, something went wrong..."
+                if (reason.message.includes('400')) {
+                  notFound.textContent = "Wrong input, make sure to fill in all fields..."
+                } else if (reason.message.includes('404')) {
+                  notFound.textContent = "Could not find any connections..."
+                }
+                list.appendChild(notFound);
+                console.log("error reason", reason);
+            });
   }
 
 
@@ -141,7 +153,7 @@ populateListRelated(source_asset_name: string, target_asset_names: Array<string>
             }
             requestAPI<any>(`get-joinable?asset_id=${asset_name}`)
             .then(json => {
-                  json['JoinableTables'].forEach(
+                  json['JoinableTables']?.forEach(
                     (entry: {
                       table_path: string;
                       matches: Record<string, Record<string, string>>[];
@@ -155,7 +167,8 @@ populateListRelated(source_asset_name: string, target_asset_names: Array<string>
                       button.className = 'my-button';
                       button.textContent = '+';
                       const text = document.createElement('p');
-                      text.textContent = entry.table_path.split('/')[0];
+                      const pathSplit = entry.table_path.split('/')
+                      text.textContent = pathSplit[pathSplit.length - 1];
                       text.className = 'my-list-item-text';
                       const tableContainer = document.createElement('div');
                       const table = document.createElement('table');
@@ -184,7 +197,7 @@ populateListRelated(source_asset_name: string, target_asset_names: Array<string>
                         const split = match['PK']['from_id'].split('/')
                         tr.setAttribute('title', match['PK']['from_id'])
                         tr.innerHTML = `
-                        <td>${split[0]}/${split[split.length-1]}</td>
+                        <td>${split[split.length-2]}/${split[split.length-1]}</td>
                         <td class='alnright'>${parseFloat(match['RELATED']['coma']).toFixed(3)}</td>
                       `;
                         table.appendChild(tr);
@@ -215,7 +228,18 @@ populateListRelated(source_asset_name: string, target_asset_names: Array<string>
                     }
                   );
                 })
-            .catch(reason => {console.error('AEUHHH????', reason);});
+            .catch(reason => {
+                const notFound = document.createElement('div');
+                notFound.className = "my-list-item-error"
+                notFound.textContent = "Oh no, something went wrong..."
+                if (reason.message.includes('400')) {
+                  notFound.textContent = "Wrong input, make sure to fill in all fields..."
+                } else if (reason.message.includes('404')) {
+                  notFound.textContent = "Could not find any connections..."
+                }
+                list.appendChild(notFound);
+                console.log("error reason:", reason);
+            });
   }
 
 
@@ -368,8 +392,6 @@ populateListRelated(source_asset_name: string, target_asset_names: Array<string>
           this.sidebar?.node.appendChild(checkboxSpan);
           this.sidebar?.node.appendChild(form);
           this.sidebar?.node.appendChild(list);
-
-          this.populateList(value, list);
         
         }
       }

@@ -105,7 +105,15 @@
     padding: 12px;
     border-top: 1px solid var(--jp-shadow-ambient-color);
     text-overflow: ellipsis;
+} 
 
+.my-list-item-error {
+    font-family: var(--jp-code-font-family);
+    padding: 12px;
+    border-top: 1px solid var(--jp-shadow-ambient-color);
+    text-overflow: ellipsis;
+    font-weight: bold;
+    font-size: 16px;
 } 
 
 .my-input-span {
