@@ -55,6 +55,14 @@ populateListRelated(source_asset_name: string, target_asset_names: Array<string>
             }
             requestAPI<any>(`get-related?source_asset_id=${source_asset_name}&target_asset_ids=${target_asset_names.join(',')}`)
             .then(json => {
+                  if (json['RelatedTables'].length === 0) {
+                      const notFound = document.createElement('div');
+                      notFound.className = "my-list-item-error"
+                      notFound.textContent = "Could not find any connections..."
+                      list.appendChild(notFound);
+                  }
+
+
                   json['RelatedTables']?.forEach(
                     (entry: {
                       links: Array<string>;
@@ -138,6 +146,8 @@ populateListRelated(source_asset_name: string, target_asset_names: Array<string>
                 notFound.textContent = "Oh no, something went wrong..."
                 if (reason.message.includes('400')) {
                   notFound.textContent = "Wrong input, make sure to fill in all fields..."
+                } else if (reason.message.includes('403')) {
+                  notFound.textContent = "Make sure the source is different from the target tables..."
                 } else if (reason.message.includes('404')) {
                   notFound.textContent = "Could not find any connections..."
                 }

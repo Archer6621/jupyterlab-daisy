@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab_daisy",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Jupyter plugin for Daisy",
   "keywords": [
     "jupyter",
